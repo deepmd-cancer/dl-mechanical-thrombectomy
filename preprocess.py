@@ -5,6 +5,8 @@ import re
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
+TICI_MAP = {"0":0,"1":1,"2": 2,"2a":3,"2b":4,"2c":5,"3":6}
+
 def get_mips_data():
 
     data_dict = dict()
@@ -25,6 +27,7 @@ def get_mips_data():
 def append_csv_features(image_dict):
     data_with_features = dict()
     csvpath = "./data_titles_and_features.csv"
+    test_fraction = 0.1
     with open(csvpath) as file:
         output = []
         labels = []
@@ -32,10 +35,15 @@ def append_csv_features(image_dict):
         line = 0
         word2num = dict()
         curr_idx = 0
+        count = 0
         for row in reader:
             if line != 0:
                 ## TODO might need to normalize pixels between 0 -> 1
                 data = image_dict[row[0]] #string id of patient to image data
+
+                data = np.divide(data, np.float32(3071))
+                # (64, 256, 256) => (64, 256, 256, 1)
+                data = tf.expand_dims(data, axis=3)
                 occlusion = parse_occlusion(row[1]) # either "occlusion" or "not" (binary)
                 old_status =  parse_old_status(row[2]) #either "", "acute", or "chronic" (one hot)
                 vessels = row[6] # a sentence string
@@ -54,15 +62,19 @@ def append_csv_features(image_dict):
                 tici = parse_tici(row[9]) #either "0","1","2a","2b","2c","3", edge case is R/L
                 gender = 1 if row[10].lower() == "female" else 0 # either "Male" or "Female"
                 age = int(row[11]) # positive int
-                if passes is not None:
+                if passes is not None and data.shape == (64, 256, 256, 1):
                     for p in passes:
                         for t in tici:
                             output.append([data,occlusion,old_status,vessel_and_locations,gender,age])
                             labels.append([p,t])
             line += 1
 
-    print(output[0])
-    return output, labels
+    train_data = output[:int(len(output) * (1 - test_fraction))]
+    train_labels = labels[:int(len(output) * (1 - test_fraction))]
+    test_data = output[int(len(output) * (1 - test_fraction)):]
+    test_labels = labels[int(len(output) * (1 - test_fraction)):]
+    plt.show()
+    return train_data, train_labels, test_data, test_labels
 
 
 def parse_occlusion(is_occlusion):
@@ -119,9 +131,8 @@ def parse_passes(passes):
     return output
 
 def parse_tici(tici):
-    tici_map = {"0":0,"1":1,"2": 2,"2a":3,"2b":4,"2c":5,"3":6}
     tici = tici.split("/") if "/" in tici else [tici]
-    output = [tici_map[x] for x in tici]
+    output = [TICI_MAP[x] for x in tici]
     return output
 
 
