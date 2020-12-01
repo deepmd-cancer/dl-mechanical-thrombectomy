@@ -35,7 +35,6 @@ def append_csv_features(image_dict):
         line = 0
         word2num = dict()
         curr_idx = 0
-        count = 0
         for row in reader:
             if line != 0:
                 ## TODO might need to normalize pixels between 0 -> 1
@@ -65,16 +64,16 @@ def append_csv_features(image_dict):
                 if passes is not None and data.shape == (64, 256, 256, 1):
                     for p in passes:
                         for t in tici:
-                            output.append([data,occlusion,old_status,vessel_and_locations,gender,age])
+                            output.append([data,vessel_and_locations, occlusion,old_status,gender,age])
                             labels.append([p,t])
             line += 1
 
-    train_data = output[:int(len(output) * (1 - test_fraction))]
-    train_labels = labels[:int(len(output) * (1 - test_fraction))]
-    test_data = output[int(len(output) * (1 - test_fraction)):]
-    test_labels = labels[int(len(output) * (1 - test_fraction)):]
+    train_data = np.array(output[:int(len(output) * (1 - test_fraction))])
+    train_labels = np.array(labels[:int(len(output) * (1 - test_fraction))])
+    test_data = np.array(output[int(len(output) * (1 - test_fraction)):])
+    test_labels = np.array(labels[int(len(output) * (1 - test_fraction)):])
     plt.show()
-    return train_data, train_labels, test_data, test_labels
+    return train_data, train_labels, test_data, test_labels, len(word2num)
 
 
 def parse_occlusion(is_occlusion):
