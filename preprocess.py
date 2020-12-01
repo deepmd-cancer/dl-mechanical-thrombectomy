@@ -106,7 +106,6 @@ def parse_vessels_locations(vessel, location):
     location = location.lower()
     concatenated = vessel + " " + location
     return concatenated.split()
-#TODO: Write a function that converts parsed vessel_locations into a dictionary for model use
 
 def parse_passes(passes):
 
@@ -121,13 +120,7 @@ def parse_passes(passes):
 
 def parse_tici(tici):
     tici_map = {"0":0,"1":1,"2": 2,"2a":3,"2b":4,"2c":5,"3":6}
-
     tici = tici.split("/") if "/" in tici else [tici]
-    # if "/" in tici:
-    #     tici = tici.split("/")
-    # else:
-    #     tici = [tici]
-
     output = [tici_map[x] for x in tici]
     return output
 
