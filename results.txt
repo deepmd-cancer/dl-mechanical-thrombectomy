@@ -1,0 +1,30 @@
+Trial 1:
+Hyperparams:
+        self.sample_shape = (64, 256, 256, 1)
+        self.vocab_size = vocab_size
+        self.batch_size = 4
+        self.learning_rate = 0.001
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+
+        self.num_classes = num_classes
+
+        self.embedding_size = 64
+        self.dropout_rate = 0.4
+        self.kernel_size = (4, 16, 16) # TODO Check order of dimensions, which one is depth
+        self.strides = (1, 2, 2)
+        self.num_filters_1 = 4
+        self.num_filters_2 = 8
+
+        self.dense1_size = 512
+        self.dense2_size = 256
+TICI Score Test Accuracy:0.3703703714741601
+Num Passes Test Accuracy:0.5925925936963823
+
+Trial 2:
+learning rate = .005
+dropout rate = 0.3
+
+Trial 3:
+
+Trial 4:
+

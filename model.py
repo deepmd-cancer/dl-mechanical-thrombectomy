@@ -15,31 +15,31 @@ class Model(tf.keras.Model):
         # hyperparameters
         self.sample_shape = (64, 256, 256, 1)
         self.vocab_size = vocab_size
-        self.batch_size = 4
+        self.batch_size = 10
         self.learning_rate = 0.001
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         self.num_classes = num_classes
 
         self.embedding_size = 64
-        self.dropout_rate = 0.2
-        self.kernel_size = (8, 8, 4) # TODO Check order of dimensions, which one is depth
-
+        self.dropout_rate = 0.3
+        self.kernel_size = (2, 8, 8) # TODO Check order of dimensions, which one is depth
+        self.strides = (1, 2, 2)
         self.num_filters_1 = 4
-        self.num_filters_2 = 8
+        self.num_filters_2 = 2
 
-        self.dense1_size = 64
-        self.dense2_size = 64
+        self.dense1_size = 512
+        self.dense2_size = 256
 
         # model for image
-        self.conv3d_1 = Conv3D(self.num_filters_1, kernel_size=self.kernel_size, activation='relu',
+        self.conv3d_1 = Conv3D(self.num_filters_1, kernel_size=self.kernel_size, strides=self.strides, activation='relu',
                          input_shape=self.sample_shape)
-        self.maxpool_1 = MaxPooling3D(pool_size=(2, 2, 2))
+        self.maxpool_1 = MaxPooling3D(pool_size=(2, 2, 2), padding='same')
         self.batchnorm_1 = BatchNormalization(center=True, scale=True)
         self.dropout_1 = Dropout(self.dropout_rate)
 
-        self.conv3d_2 = Conv3D(self.num_filters_2, kernel_size=self.kernel_size, activation='relu')
-        self.maxpool_2 = MaxPooling3D(pool_size=(2, 2, 2))
+        self.conv3d_2 = Conv3D(self.num_filters_2, kernel_size=self.kernel_size, strides=self.strides, activation='relu')
+        self.maxpool_2 = MaxPooling3D(pool_size=(2, 2, 2), padding='same')
         self.batchnorm_2 = BatchNormalization(center=True, scale=True)
 
         
@@ -66,13 +66,14 @@ class Model(tf.keras.Model):
         # call image layer
         #print("starting conv")
         image_out = self.conv3d_1(images)
-        image_out = self.maxpool_1(image_out)
         image_out = self.batchnorm_1(image_out)
+        image_out = self.maxpool_1(image_out)
         #print("finishing conv")
         image_out = self.dropout_1(image_out)
         image_out = self.conv3d_2(image_out)
-        image_out = self.maxpool_2(image_out)
         image_out = self.batchnorm_2(image_out)
+        image_out = self.maxpool_2(image_out)
+        #print(image_out.shape)
         #image_out = #(batch_size, 64, 32, 32, 1)
 
 
@@ -107,12 +108,27 @@ class Model(tf.keras.Model):
         return loss
 
     def accuracy(self, probs, labels):
-        correct_predictions = tf.equal(tf.argmax(probs, 1), labels)
-        return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+        # correct_predictions = tf.equal(tf.argmax(probs, 1), labels)
+        # return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+        num_correct = 0
+        for i in range(len(labels)):
+            if np.argmax(probs[i]) == labels[i]:
+                num_correct += 1
+        return num_correct / len(labels)
+
+    def multi_accuracy(self, probs, labels, num):
+        # correct_predictions = tf.equal(tf.argmax(probs, 1), labels)
+        # return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+        num_correct = 0
+        for i in range(len(labels)):
+            if np.argmax(probs[i]) == labels[i]:
+                num_correct += 1
+        return num_correct / len(labels)
 
 def train(model, train_inputs, train_labels, predict_tici=False):
     nrows = train_labels.shape[0]
     nbatches = int(np.ceil(nrows/model.batch_size))
+    accuracy = np.zeros(nbatches)
     if predict_tici:
         train_labels = np.array([row[1] for row in train_labels])
     else:
@@ -126,10 +142,11 @@ def train(model, train_inputs, train_labels, predict_tici=False):
         with tf.GradientTape() as tape:
             probabilities = model.call(inputs)
             loss = model.loss(probabilities, labels)
+            accuracy[batch] = model.accuracy(probabilities, labels)
             # model.loss_list.append(loss.numpy())
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-    print("Done!")
+    print("Done! Train accuracy: " + str(tf.reduce_mean(accuracy).numpy()))
 
 def test(model, test_inputs, test_labels, predict_tici=False):
     nrows = test_labels.shape[0]
@@ -151,26 +168,23 @@ def test(model, test_inputs, test_labels, predict_tici=False):
 def main():
     num_tici_scores = len(TICI_MAP)
     max_passes = 10 # last class represents >=10 passes
-    num_epochs = 5
+    num_epochs = 10
 
     train_data, train_labels, test_data, test_labels, vocab_size = append_csv_features(get_mips_data())
 
     tici_model = Model(vocab_size, num_tici_scores)
     passes_model = Model(vocab_size, max_passes)
 
-    # TODO REMOVE THIS
-    # train_data = train_data[0:10]
-    # test_data = test_data[0:10]
-    # train_labels = train_labels[0:10]
-    # test_labels = test_labels[0:10]
-
     for i in range(num_epochs):
         print(i)
         train(tici_model, train_data, train_labels, predict_tici=True)
         train(passes_model, train_data, train_labels)
+        # print("train acc:")
+        # print("tici:" + str(test(tici_model, train_data, train_labels, predict_tici=True).numpy()))
+        # print("passes:" + str(test(passes_model, train_data, train_labels).numpy()))
 
-    print(test(tici_model, test_data, test_labels, predict_tici=True))
-    print(test(passes_model, test_data, test_labels))
+    print("TICI Score Test Accuracy:" + str(test(tici_model, test_data, test_labels, predict_tici=True).numpy()))
+    print("Num Passes Test Accuracy:" + str(test(passes_model, test_data, test_labels).numpy()))
 
 
 if __name__ == '__main__':
