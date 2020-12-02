@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 TICI_MAP = {"0":0,"1":1,"2": 2,"2a":3,"2b":4,"2c":5,"3":6}
+sentence_len = 25
 
 def get_mips_data():
 
@@ -34,7 +35,8 @@ def append_csv_features(image_dict):
         reader = csv.reader(file)
         line = 0
         word2num = dict()
-        curr_idx = 0
+        word2num["*UNK*"] = 0
+        curr_idx = 1
         for row in reader:
             if line != 0:
                 ## TODO might need to normalize pixels between 0 -> 1
@@ -64,7 +66,12 @@ def append_csv_features(image_dict):
                 if passes is not None and data.shape == (64, 256, 256, 1):
                     for p in passes:
                         for t in tici:
-                            output.append([data,vessel_and_locations, occlusion,old_status,gender,age])
+                            entry = [data,vessel_and_locations]
+                            entry.append(occlusion)
+                            entry.extend(old_status)
+                            entry.append(gender)
+                            entry.append(age)
+                            output.append(entry)
                             labels.append([p,t])
             line += 1
 
@@ -116,7 +123,12 @@ def parse_vessels_locations(vessel, location):
     vessel = re.sub('[^0-9a-zA-Z]+', ' ', vessel)
     location = location.lower()
     concatenated = vessel + " " + location
-    return concatenated.split()
+    output = concatenated.split()
+    while len(output) < sentence_len:
+        output.append("*UNK*")
+    # add elements to split until length is == sentence_length
+
+    return output
 
 def parse_passes(passes):
 
