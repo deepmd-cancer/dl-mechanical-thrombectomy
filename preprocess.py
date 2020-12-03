@@ -45,6 +45,10 @@ def append_csv_features(image_dict):
                 data = np.divide(data, np.float32(3071))
                 # (64, 256, 256) => (64, 256, 256, 1)
                 data = tf.expand_dims(data, axis=3)
+                flipped_data = data.numpy()
+                for i in range(len(flipped_data)):
+                    flipped_data[i] = tf.image.random_flip_left_right(flipped_data[i])
+
                 occlusion = parse_occlusion(row[1]) # either "occlusion" or "not" (binary)
                 old_status =  parse_old_status(row[2]) #either "", "acute", or "chronic" (one hot)
                 vessels = row[6] # a sentence string
@@ -67,11 +71,20 @@ def append_csv_features(image_dict):
                     for p in passes:
                         for t in tici:
                             entry = [data,vessel_and_locations]
+                            flipped_entry = [flipped_data, vessel_and_locations]
                             entry.append(occlusion)
                             entry.extend(old_status)
                             entry.append(gender)
                             entry.append(age)
+
+                            flipped_entry.append(occlusion)
+                            flipped_entry.extend(old_status)
+                            flipped_entry.append(gender)
+                            flipped_entry.append(age)
+
                             output.append(entry)
+                            output.append(flipped_entry)
+                            labels.append([p,t])
                             labels.append([p,t])
             line += 1
 
