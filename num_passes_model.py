@@ -88,6 +88,8 @@ class Passes_Model(tf.keras.Model):
 
     def loss(self, probs, labels):
         loss = tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, probs))
+        # loss_func = tf.keras.losses.CosineSimilarity()
+        # loss = tf.reduce_mean(loss_func(labels, probs))
         return loss
 
     def accuracy(self, probs, labels):

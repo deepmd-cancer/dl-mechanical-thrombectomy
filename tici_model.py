@@ -13,21 +13,21 @@ class TICI_Model(tf.keras.Model):
         self.sample_shape = (64, 256, 256, 1)
         self.vocab_size = vocab_size
         self.batch_size = 16
-        self.learning_rate = 0.002
+        self.learning_rate = 0.0015
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         self.num_classes = num_classes
 
         self.embedding_size = 64
         self.dropout_rate = 0.2
-        self.kernel_size = (3, 9, 9)  # TODO Check order of dimensions, which one is depth
+        self.kernel_size = (3, 7, 7)  # TODO Check order of dimensions, which one is depth
         self.strides = (1, 2, 2)
-        self.pool_size = (4, 4, 4)
+        self.pool_size = (2, 2, 2)
         self.num_filters_1 = 4
         self.num_filters_2 = 8
 
-        self.dense1_size = 128
-        self.dense2_size = 128
+        self.dense1_size = 64
+        self.dense2_size = 48
 
         # model for image
         self.conv3d_1 = Conv3D(self.num_filters_1, kernel_size=self.kernel_size, strides=self.strides,
@@ -98,6 +98,10 @@ class TICI_Model(tf.keras.Model):
 
     def loss(self, probs, labels):
         loss = tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, probs))
+        # predicted = np.argmax(probs)
+        #
+        # loss_func = tf.keras.losses.CosineSimilarity()
+        # loss = tf.reduce_mean(loss_func(labels, predicted))
         return loss
 
     def accuracy(self, probs, labels):
