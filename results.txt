@@ -25,6 +25,123 @@ learning rate = .005
 dropout rate = 0.3
 
 Trial 3:
+self.sample_shape = (64, 256, 256, 1)
+        self.vocab_size = vocab_size
+        self.batch_size = 10
+        self.learning_rate = 0.001
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+
+        self.num_classes = num_classes
+
+        self.embedding_size = 64
+        self.dropout_rate = 0.3
+        self.kernel_size = (2, 12, 12) # TODO Check order of dimensions, which one is depth
+        self.strides = (1, 2, 2)
+        self.pool_size = (2, 9, 9)
+        self.num_filters_1 = 4
+        self.num_filters_2 = 2
+
+        self.dense1_size = 128
+        self.dense2_size = 128
+
+
+TICI Score Test Accuracy:0.45
+Num Passes Test Accuracy:0.625
+
 
 Trial 4:
+pool size -> (3, 3, 3)
 
+TICI Score Test Accuracy:0.32499999999999996
+Num Passes Test Accuracy:0.6
+
+Trial 5:
+pool size -> (1, 3, 3)
+learning rate -> 0.002
+TICI Score Test Accuracy:0.5
+Num Passes Test Accuracy:0.65
+
+Trial 6:
+epochs = 25
+TICI Score Test Accuracy:0.35000000000000003
+Num Passes Test Accuracy:0.525
+
+Trial 7:
+kernal ->2,6,6
+Done! Train accuracy: 0.8870967741935484
+Done! Train accuracy: 0.9179723502304147
+TICI Score Test Accuracy:0.325
+Num Passes Test Accuracy:0.625
+
+Trial 8:
+self.sample_shape = (64, 256, 256, 1)
+        self.vocab_size = vocab_size
+        self.batch_size = 10
+        self.learning_rate = 0.002
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+
+        self.num_classes = num_classes
+
+        self.embedding_size = 64
+        self.dropout_rate = 0.3
+        self.kernel_size = (2, 8, 8) # TODO Check order of dimensions, which one is depth
+        self.strides = (1, 2, 2)
+        self.pool_size = (1, 4, 4)
+        self.num_filters_1 = 8
+        self.num_filters_2 = 8
+
+        self.dense1_size = 128
+        self.dense2_size = 128
+     TICI Score Test Accuracy:0.45
+     Num Passes Test Accuracy:0.6
+
+
+
+Trial 9:
+
+self.sample_shape = (64, 256, 256, 1)
+        self.vocab_size = vocab_size
+        self.batch_size = 10
+        self.learning_rate = 0.002
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+
+        self.num_classes = num_classes
+
+        self.embedding_size = 64
+        self.dropout_rate = 0.2
+        self.kernel_size = (3, 9, 9) # TODO Check order of dimensions, which one is depth
+        self.strides = (1, 2, 2)
+        self.pool_size = (1, 5, 5)
+        self.num_filters_1 = 8
+        self.num_filters_2 = 8
+
+        self.dense1_size = 128
+        self.dense2_size = 128
+TICI Score Test Accuracy:0.5
+Num Passes Test Accuracy:0.5750000000000001
+
+Trial 10: change kernel to (3, 7, 7), pool to (1, 3, 3)
+
+
+Trial 11:
+# hyperparameters
+        self.sample_shape = (64, 256, 256, 1)
+        self.vocab_size = vocab_size
+        self.batch_size = 16
+        self.learning_rate = 0.002
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+
+        self.num_classes = num_classes
+
+        self.embedding_size = 64
+        self.dropout_rate = 0.2
+        self.kernel_size = (3, 9, 9) # TODO Check order of dimensions, which one is depth
+        self.strides = (1, 2, 2)
+        self.pool_size = (4, 4, 4)
+        self.num_filters_1 = 4
+        self.num_filters_2 = 8
+
+        self.dense1_size = 128
+        self.dense2_size = 128
+
+        TICI 52%, Passese 63%

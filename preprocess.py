@@ -28,7 +28,7 @@ def get_mips_data():
 def append_csv_features(image_dict):
     data_with_features = dict()
     csvpath = "./data_titles_and_features.csv"
-    test_fraction = 0.1
+    test_fraction = 0.2
     with open(csvpath) as file:
         output = []
         labels = []
@@ -75,11 +75,18 @@ def append_csv_features(image_dict):
                             labels.append([p,t])
             line += 1
 
+    output = np.array(output)
+    labels = np.array(labels)
+    indices = np.arange(output.shape[0])
+    np.random.shuffle(indices)
+    output = output[indices]
+    labels = labels[indices]
+
     train_data = np.array(output[:int(len(output) * (1 - test_fraction))])
     train_labels = np.array(labels[:int(len(output) * (1 - test_fraction))])
     test_data = np.array(output[int(len(output) * (1 - test_fraction)):])
     test_labels = np.array(labels[int(len(output) * (1 - test_fraction)):])
-    plt.show()
+
     return train_data, train_labels, test_data, test_labels, len(word2num)
 
 

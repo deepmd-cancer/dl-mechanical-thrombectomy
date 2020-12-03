@@ -15,32 +15,34 @@ class Model(tf.keras.Model):
         # hyperparameters
         self.sample_shape = (64, 256, 256, 1)
         self.vocab_size = vocab_size
-        self.batch_size = 10
-        self.learning_rate = 0.001
+        self.batch_size = 16
+        self.learning_rate = 0.002
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         self.num_classes = num_classes
 
         self.embedding_size = 64
-        self.dropout_rate = 0.3
-        self.kernel_size = (2, 8, 8) # TODO Check order of dimensions, which one is depth
+        self.dropout_rate = 0.2
+        self.kernel_size = (3, 9, 9) # TODO Check order of dimensions, which one is depth
         self.strides = (1, 2, 2)
+        self.pool_size = (4, 4, 4)
         self.num_filters_1 = 4
-        self.num_filters_2 = 2
+        self.num_filters_2 = 8
 
-        self.dense1_size = 512
-        self.dense2_size = 256
+        self.dense1_size = 128
+        self.dense2_size = 128
 
         # model for image
         self.conv3d_1 = Conv3D(self.num_filters_1, kernel_size=self.kernel_size, strides=self.strides, activation='relu',
                          input_shape=self.sample_shape)
-        self.maxpool_1 = MaxPooling3D(pool_size=(2, 2, 2), padding='same')
+        self.maxpool_1 = MaxPooling3D(pool_size=self.pool_size, padding='same')
         self.batchnorm_1 = BatchNormalization(center=True, scale=True)
         self.dropout_1 = Dropout(self.dropout_rate)
 
         self.conv3d_2 = Conv3D(self.num_filters_2, kernel_size=self.kernel_size, strides=self.strides, activation='relu')
-        self.maxpool_2 = MaxPooling3D(pool_size=(2, 2, 2), padding='same')
+        self.maxpool_2 = MaxPooling3D(pool_size=self.pool_size, padding='same')
         self.batchnorm_2 = BatchNormalization(center=True, scale=True)
+        self.dropout_2 = Dropout(self.dropout_rate)
 
         
         # model for vessel and location
@@ -168,7 +170,7 @@ def test(model, test_inputs, test_labels, predict_tici=False):
 def main():
     num_tici_scores = len(TICI_MAP)
     max_passes = 10 # last class represents >=10 passes
-    num_epochs = 10
+    num_epochs = 3
 
     train_data, train_labels, test_data, test_labels, vocab_size = append_csv_features(get_mips_data())
 
