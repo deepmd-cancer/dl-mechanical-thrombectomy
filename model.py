@@ -53,7 +53,7 @@ def test(model, test_inputs, test_labels, predict_tici=False):
 def main():
     num_tici_scores = len(TICI_MAP)
     max_passes = 10 # last class represents >=10 passes
-    num_epochs = 5 # epochs that i've found good are 4, 5, 6, 8 -Chris
+    num_epochs = 10 # epochs that i've found good are 4, 5, 6, 8 -Chris
 
     train_data, train_labels, test_data, test_labels, vocab_size = append_csv_features(get_mips_data())
 
