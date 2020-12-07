@@ -10,6 +10,8 @@ def train(model, train_inputs, train_labels, predict_tici=False):
     nrows = train_labels.shape[0]
     nbatches = int(np.ceil(nrows/model.batch_size))
     accuracy = np.zeros(nbatches)
+    total_under = np.zeros(nbatches)
+    total_over = np.zeros(nbatches)
     if predict_tici:
         train_labels = np.array([row[1] for row in train_labels])
     else:
@@ -23,7 +25,10 @@ def train(model, train_inputs, train_labels, predict_tici=False):
         with tf.GradientTape() as tape:
             probabilities = model.call(inputs)
             loss = model.loss(probabilities, labels)
-            accuracy[batch] = model.accuracy(probabilities, labels)
+            acc, under, over, residuals = model.accuracy(probabilities, labels)
+            accuracy[batch] = acc
+            total_under[batch] = under
+            total_over[batch] = over
             # model.loss_list.append(loss.numpy())
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
@@ -37,17 +42,28 @@ def test(model, test_inputs, test_labels, predict_tici=False):
     nrows = test_labels.shape[0]
     nbatches = int(np.ceil(nrows / model.batch_size))
     accuracy = np.zeros(nbatches)
+    total_under = np.zeros(nbatches)
+    total_over = np.zeros(nbatches)
+
     if predict_tici:
         test_labels = np.array([row[1] for row in test_labels])
+        total_residuals = np.zeros((nbatches, 7))
     else:
         test_labels = np.array([row[0] for row in test_labels])
+        total_residuals = np.zeros((nbatches, 10))
+
     for batch in range(0, nbatches):
         start_idx = batch * model.batch_size
         inputs = test_inputs[start_idx:min((start_idx + model.batch_size), nrows)]
         labels = test_labels[start_idx:min((start_idx + model.batch_size), nrows)]
         probs = model.call(inputs)
-        accuracy[batch] = model.accuracy(probs, labels)
-    return tf.reduce_mean(accuracy)
+        acc, under, over, residuals = model.accuracy(probs, labels)
+        accuracy[batch] = acc
+        total_under[batch] = under
+        total_over[batch] = over
+        total_residuals[batch] = residuals
+
+    return tf.reduce_mean(accuracy), tf.reduce_mean(total_under), tf.reduce_mean(total_over), tf.reduce_mean(total_residuals, axis=0)
 
 
 def main():
@@ -69,8 +85,16 @@ def main():
         train(tici_model, train_data, train_labels, predict_tici=True)
         train(passes_model, train_data, train_labels)
 
-    print("TICI Score Test Accuracy:" + str(test(tici_model, test_data, test_labels, predict_tici=True).numpy()))
-    print("Num Passes Test Accuracy:" + str(test(passes_model, test_data, test_labels).numpy()))
+    tici_acc, tici_over, tici_under, tici_residual = test(tici_model, test_data, test_labels, predict_tici=True)
+    passes_acc, passes_over, passes_under, passes_residual = test(passes_model, test_data, test_labels)
+    print("TICI Score Test Accuracy: " + str(tici_acc))
+    print("TICI Overpredict Rate: " + str(tici_over))
+    print("TICI Underpredict Rate: " + str(tici_under))
+    print("TICI Residual: " + str(tici_residual))
+    print("Num Passes Test Accuracy: " + str(passes_acc))
+    print("Num Passes Overpredict Rate: " + str(passes_over))
+    print("Num Passes Underpredict Rate: " + str(passes_under))
+    print("Num Passes Residual : " + str(passes_residual))
 
 
 if __name__ == '__main__':

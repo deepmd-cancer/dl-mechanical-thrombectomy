@@ -107,11 +107,27 @@ class TICI_Model(tf.keras.Model):
     def accuracy(self, probs, labels):
         # correct_predictions = tf.equal(tf.argmax(probs, 1), labels)
         # return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+        prior = np.zeros(7)
+        post = np.zeros(7)
         num_correct = 0
+        num_underpredicted = 0
+        num_overpredicted = 0
         for i in range(len(labels)):
-            if np.argmax(probs[i]) == labels[i]:
+            predicted = np.argmax(probs[i])
+            label = labels[i]
+            prior[label] += 1
+            if predicted == label:
                 num_correct += 1
-        return num_correct / len(labels)
+                post[predicted] += 1
+            if predicted < label:
+                num_underpredicted += 1
+            if predicted > label:
+                num_overpredicted += 1
+        acc = num_correct / len(labels)
+        under = num_underpredicted / len(labels)
+        over = num_overpredicted / len(labels)
+        residuals = np.divide(post, prior, where=prior!=0) - (prior/len(labels))
+        return acc, under, over, residuals
 
     def multi_accuracy(self, probs, labels):
         # correct_predictions = tf.equal(tf.argmax(probs, 1), labels)

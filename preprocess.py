@@ -7,6 +7,8 @@ import tensorflow as tf
 
 TICI_MAP = {"0":0,"1":1,"2": 2,"2a":3,"2b":4,"2c":5,"3":6}
 sentence_len = 25
+tici_distribution = np.zeros(7)
+passes_distribution = np.zeros(10)
 
 def get_mips_data():
 
@@ -70,6 +72,8 @@ def append_csv_features(image_dict):
                 if passes is not None and data.shape == (64, 256, 256, 1):
                     for p in passes:
                         for t in tici:
+                            tici_distribution[t] += 1
+                            passes_distribution[p] += 1
                             entry = [data,vessel_and_locations]
                             flipped_entry = [flipped_data, vessel_and_locations]
                             entry.append(occlusion)
@@ -168,3 +172,5 @@ def parse_tici(tici):
 
 
 append_csv_features(get_mips_data())
+print(tici_distribution)
+print(passes_distribution)
